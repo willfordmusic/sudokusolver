@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="img/favicon.png">
+    <title>Sudoku Solver</title>
+</head>
+<body>
+    <main class="container">
+        <div class="header">
+            <h1>Sudoku Solver</h1>
+        </div>
+        <div class="sudoku" id="sudoku"></div>
+        <div class="footer">
+            <a href="#" id="btn-clear"><span>Clear</span></a>
+            <a href="#" id="btn-candidate"><span>Show Candidates</span></a>
+            <a href="#" id="btn-solve"><span>Solve Sudoku</span></a>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+    <script src="js/model/Sudoku.js"></script>
+    <script src="js/setup.js"></script>
+</body>
+</html>
