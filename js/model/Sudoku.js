@@ -31,13 +31,18 @@ class Sudoku {
         this.updateCells();
         for (let i = 0; i < 50 && !this.isSolved() && this.isSolvable; i++) {
             this.updateCandidates();
+            this.showCandidates();
+
             this.soleCandidates();
+            this.clear();
+
             this.hiddenSingles();
+            this.clear();
             
             console.log(i);
         }
 
-        this.clear();
+        
         if (!this.isSolved()) {
             this.showCandidates();
             alert('Sudoku could not be solved! :(');
@@ -81,39 +86,40 @@ class Sudoku {
     hiddenSingles() {
         for (let x = 0; x < 9; x++) {
             for (let y = 0; y < 9; y++) {
-                if (this.cells[x][y] === undefined) {
-                    for (let i = 1; i <= 9; i++) {
-                        if (this.candidates[x][y][i] === 1) {
-                            let found = false;
-                            let count;
-    
-                            // Check Horizontal Rows
-                            if (!found) {
-                                count = 0;
-                                for (let j = 0; j < 9; j++) if (this.candidates[j][y][i] === 1 && this.cells[j][y] === undefined) count++;
-                                if (count === 1) found = true;
-                            }
+                for (let i = 1; i <= 9; i++) {
+                    if (this.candidates[x][y][i] === 1 && this.cells[x][y] === undefined) {
+                        let found = false;
+                        let count;
 
-                            // Check Vertical Rows
-                            if (!found) {
-                                count = 0;
-                                for (let j = 0; j < 9; j++) if (this.candidates[x][j][i] === 1 && this.cells[x][j] === undefined) count++;
-                                if (count === 1) found = true;
-                            }
+                        // Check Horizontal Rows
+                        if (!found) {
+                            count = 0;
+                            for (let j = 0; j < 9; j++) if (this.candidates[j][y][i] === 1 && this.cells[j][y] === undefined) count++;
+                            if (count === 1) found = true;
+                        }
 
-                            // Check Boxes
-                            if (!found) {
-                                count = 0;
-                                for (let boxX = Math.floor(x / 3) * 3; boxX < Math.floor(x / 3) * 3 + 3; boxX++) {
-                                    for (let boxY = Math.floor(y / 3) * 3; boxY < Math.floor(y / 3) * 3 + 3; boxY++) {
-                                        if (this.candidates[boxX][boxY][i] === 1 && this.cells[boxX][boxY] === undefined) count++;
-                                    }
+                        // Check Vertical Rows
+                        if (!found) {
+                            count = 0;
+                            for (let j = 0; j < 9; j++) if (this.candidates[x][j][i] === 1 && this.cells[x][j] === undefined) count++;
+                            if (count === 1) found = true;
+                        }
+
+                        // Check Boxes
+                        if (!found) {
+                            count = 0;
+                            for (let boxX = Math.floor(x / 3) * 3; boxX < Math.floor(x / 3) * 3 + 3; boxX++) {
+                                for (let boxY = Math.floor(y / 3) * 3; boxY < Math.floor(y / 3) * 3 + 3; boxY++) {
+                                    if (this.candidates[boxX][boxY][i] === 1 && this.cells[boxX][boxY] === undefined) count++;
                                 }
-                                if (count === 1) found = true;
                             }
-                            
-                            // Conclusion
-                            if (found) this.cells[x][y] = 1;
+                            if (count === 1) found = true;
+                        }
+                        
+                        // Conclusion
+                        if (found) { 
+                            this.cells[x][y] = i;
+                            this.updateCandidates();
                         }
                     }
                 }
@@ -131,11 +137,10 @@ class Sudoku {
                 
                 for (let i = 1; i <= 9; i++) {
 
-                    // Check Horizontal Rows
-                    for (let j = 0; j < 9; j++) if (this.cells[j][y] === i) this.candidates[x][y][i] = 0;
-
-                    // Check Vertical Rows
-                    for (let j = 0; j < 9; j++) if (this.cells[x][j] === i) this.candidates[x][y][i] = 0;
+                    // Check Horizontal and Vertical Rows
+                    for (let j = 0; j < 9; j++) {
+                        if (this.cells[j][y] === i || this.cells[x][j] === i) this.candidates[x][y][i] = 0; 
+                    }
 
                     // Check Boxes
                     for (let boxX = Math.floor(x / 3) * 3; boxX < Math.floor(x / 3) * 3 + 3; boxX++) {

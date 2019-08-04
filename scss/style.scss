@@ -128,7 +128,9 @@ $cell-border: 1px;
         text-decoration: none;
         color: black;
         font-weight: bold;
+        font-size: $cell-size / 3.5;
         transition: transform .4s, box-shadow .4s;
+        border-radius: 8px;
 
         &:hover {
             transform: translateY(-5px);

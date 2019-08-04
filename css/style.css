@@ -174,10 +174,12 @@ body {
   text-decoration: none;
   color: black;
   font-weight: bold;
+  font-size: 20px;
   -webkit-transition: -webkit-transform .4s, -webkit-box-shadow .4s;
   transition: -webkit-transform .4s, -webkit-box-shadow .4s;
   transition: transform .4s, box-shadow .4s;
   transition: transform .4s, box-shadow .4s, -webkit-transform .4s, -webkit-box-shadow .4s;
+  border-radius: 8px;
 }
 
 .footer a:hover {
