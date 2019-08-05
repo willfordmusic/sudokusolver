@@ -160,7 +160,7 @@ class Sudoku {
         $('#btn-clear').click((e) => { 
             e.preventDefault(); 
             this.cells = [];
-            for (let i = 0; i < 9; i++) this.cells[i] = [];
+            for (let i = 0; i < 9; i++) this.cells.push([0, 0, 0, 0, 0, 0, 0, 0, 0]);
             self.clear();
         });
         $('#btn-candidate').click((e) => { 
