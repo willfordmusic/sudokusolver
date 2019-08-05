@@ -101,11 +101,14 @@ $cell-border: 1px;
     width: 9 * $cell-size;
     min-width: 9 * $cell-size;
     display: flex;
+    margin-bottom: 15px;
+    flex-direction: column;
     justify-content: center;
+    user-select: none;
 
-    h1 {
-        display: inline;
-        user-select: none;
+    h1, p {
+        text-align: center;
+        margin: 0;
     }
 }
 

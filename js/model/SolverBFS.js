@@ -8,57 +8,16 @@ class Queue {
 class SolverBFS {
     constructor(sudoku) {
         this.sudoku = sudoku;
-        this.solution;
     }
 
     solve() {
-        const startTime = performance.now();
-        this.sudoku.updateCells();
-
-        this.BFS();
-
-        if (this.solution === undefined) {
-            this.sudoku.showCandidates();
-            console.log('Sudoku could not be solved! :(');
-        } else {
-            this.sudoku = this.solution;
-            this.sudoku.clear();
-            console.log(`Sudoku solved in ${Math.floor(performance.now() - startTime)}ms`);
-        }
-    }
-
-    getFirstEmptyCell(node) {
-        for (let x = 0; x < 9; x++) {
-            for (let y = 0; y < 9; y++) {
-                if (node.isEmpty(x, y)) return { x: x, y: y };
-            }
-        }
-    }
-
-    isSolved(node) {
-        for (let x = 0; x < 9; x++) {
-            for (let y = 0; y < 9; y++) {
-                if (node.isEmpty(x, y)) return false;
-            }
-        }
-        return true;
-    }
-
-    isSolvable(node) {
-        node.updateCandidates();
-        for (let x = 0; x < 9; x++)
-            for (let y = 0; y < 9; y++)
-                if (node.candidates[x][y].filter(i => i === 1).length === 0) return false;
-        return true;
-    }
-
-    BFS() {
+        let solution;
         const queue = new Queue();
         queue.enqueue(new Sudoku(this.sudoku.cells));
 
-        while (!queue.isEmpty() && this.solution === undefined) {
+        while (!queue.isEmpty() && solution === undefined) {
             const node = queue.dequeue();
-            if (this.isSolved(node)) this.solution = node;
+            if (node.isSolved()) solution = node.cells;
             else {
                 const cell = this.getFirstEmptyCell(node);
                 const cand = node.getCandidates(cell.x, cell.y);
@@ -71,5 +30,22 @@ class SolverBFS {
                 });
             }
         }
+
+        return solution;
+    }
+
+    getFirstEmptyCell(node) {
+        for (let x = 0; x < 9; x++) {
+            const pos = node.cells[x].indexOf(0);
+            if (pos >= 0) return { x: x, y: pos };
+        }
+    }
+
+    isSolvable(node) {
+        node.updateCandidates();
+        for (let x = 0; x < 9; x++)
+            for (let y = 0; y < 9; y++)
+                if (node.candidates[x][y].filter(i => i === 1).length === 0) return false;
+        return true;
     }
 }

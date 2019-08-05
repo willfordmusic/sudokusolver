@@ -10,26 +10,32 @@ class Sudoku {
 
         if (cells === undefined) {
             this.cells = [];
-            for (let i = 0; i < 9; i++) this.cells.push([]);
+            for (let i = 0; i < 9; i++) this.cells.push([0, 0, 0, 0, 0, 0, 0, 0, 0]);
         } else this.cells = JSON.parse(JSON.stringify(cells));
     }
 
     // Solve the sudoku using a solver object
     solve() {
-        //new SolverAI(this).solve();
-        new SolverBFS(this).solve();
+        const startTime = performance.now();
+        this.updateCells();
+        const solution = new SolverBFS(this).solve();
+
+        if (solution === undefined) {
+            this.showCandidates();
+            $('#message').text('Sudoku could not be solved! :(');
+        } else {
+            this.cells = solution;
+            this.clear();
+            $('#message').text(`Sudoku solved in ${Math.floor(performance.now() - startTime)}ms`);
+        }
     }
 
     // Returns bool if the sudoku is solved
     isSolved() {
         for (let x = 0; x < 9; x++) 
             for (let y = 0; y < 9; y++)
-                if (this.isEmpty(x, y)) return false;
+                if (this.cells[x][y] === 0) return false;
         return true;
-    }
-
-    isEmpty(x, y) {
-        return this.cells[x][y] === undefined || this.cells[x][y] === null;
     }
 
     // Generate all possible candidates
@@ -44,7 +50,7 @@ class Sudoku {
     // Generates candidates for a cell on coordinate (x, y)
     getCandidates(x, y) {
         let cand;
-        if (this.isEmpty(x, y)) {
+        if (this.cells[x][y] === 0) {
             cand = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1];
                 
             for (let i = 1; i <= 9; i++) {
@@ -68,6 +74,19 @@ class Sudoku {
         return cand;
     }
 
+    // Updates the cells member variable with what is seen in the UI
+    updateCells() {
+        for (let x = 0; x < 9; x++) {
+            for (let y = 0; y < 9; y++) {
+                if ($(`#${x}${y}`).text().length === 1) 
+                    this.cells[x][y] = parseInt($(`#${x}${y}`).text());
+                else this.cells[x][y] = 0;
+            }
+        }
+    }
+
+    // FRONTEND FUNCTIONS
+
     // Show the saved candidates
     showCandidates() {
         for (let x = 0; x < 9; x++) {
@@ -78,14 +97,6 @@ class Sudoku {
                 }
             }
         }
-    }
-
-    // Updates the cells member variable with what is seen in the UI
-    updateCells() {
-        for (let x = 0; x < 9; x++)
-            for (let y = 0; y < 9; y++)
-                if ($(`#${x}${y}`).text().length === 1) 
-                    this.cells[x][y] = parseInt($(`#${x}${y}`).text());
     }
 
     // Sets the active cell
@@ -129,7 +140,7 @@ class Sudoku {
             for (let y = Math.floor(i / 3) * 3; y < Math.floor(i / 3) * 3 + 3; y++) {
                 for (let x = i % 3 * 3; x < i % 3 * 3 + 3; x++) {
                     const cell = $(`<div class="cell grid" id="${x}${y}"></div>`);
-                    if (this.isEmpty(x, y)) 
+                    if (this.cells[x][y] === 0) 
                         for (let j = 1; j <= 9; j++) cell.append(`<div class="cand hidden" id="${x}${y}-${j}">${j}</div>`);
                     else cell.html(this.cells[x][y]);
                     box.append(cell);
@@ -176,7 +187,7 @@ class Sudoku {
             if (key === 55) self.setCell(7);
             if (key === 56) self.setCell(8);
             if (key === 57) self.setCell(9);
-            if (key === 8 || key == 46) self.setCell();
+            if (key === 8 || key === 46 || key === 32) self.setCell();
             if (key >= 37 && key <= 40) self.moveActiveCell(key);
         });
     }
