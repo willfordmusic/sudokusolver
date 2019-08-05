@@ -1,12 +1,12 @@
 class Sudoku {
     constructor() {
         this.activeCell = 'x';
-        this.isSolvable = true;
 
         this.cells = [];
         for (let i = 0; i < 9; i++) this.cells[i] = [];
 
         //Debug, load cells
+        /*
         this.cells = [
             [4, 2, 7, 1, 9, 8, 3, 5, 6],
             [1, 6, 5, 7, 2, 3, 9, 4, 8],
@@ -18,6 +18,19 @@ class Sudoku {
             [2, undefined, undefined, 8, 3, undefined, 5, undefined, 9],
             [undefined, 8, undefined, 9, 5, undefined, 2, undefined, 1],
         ];
+        */
+
+        this.cells = [
+            [undefined, undefined, 4, undefined, 7, undefined, undefined, undefined, 3],
+            [6, undefined, 9],
+            [undefined, 2, undefined, 1],
+            [undefined, undefined, undefined, undefined, 9, undefined, 2],
+            [8, undefined, 6, undefined, 3, undefined, undefined, 4, 7],
+            [undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 5],
+            [undefined, 5, undefined, undefined, undefined, 7, 3],
+            [undefined, undefined, undefined, undefined, undefined, 2, undefined, 7],
+            [undefined, 7, 2, 4, 1, undefined, 9, undefined, 6],
+        ]; // ~37ms
 
         this.candidates = [];
         for (let i = 0; i < 9; i++) {
@@ -26,22 +39,9 @@ class Sudoku {
         }
     }
 
-    // Solve the sudoku
+    // Solve the sudoku using a solver object
     solve() {
-        const startTime = performance.now();
-        this.updateCells();
-        for (let i = 0; i < 50 && !this.isSolved() && this.isSolvable; i++) {
-            this.updateCandidates();
-
-            this.soleCandidates();
-            this.hiddenSingles();
-        }
-
-        this.clear();
-        if (!this.isSolved()) {
-            this.showCandidates();
-            console.log('Sudoku could not be solved! :(');
-        } else console.log(`Sudoku solved in ${Math.floor(performance.now() - startTime)}ms`);
+        new SolverAI(this).solve();
     }
 
     // Returns bool if the sudoku is solved
@@ -52,104 +52,24 @@ class Sudoku {
         return true;
     }
 
-    // Returns false if cell is not solved and solution if cell is solved
-    solveCell(x, y) {
-        if (this.cells[x][y] !== undefined) return this.cells[x][y];
-        else {
-            let cand = 0;
-            for (let i = 1; i <= 9; i++) if (this.candidates[x][y][i] === 1) cand++;
-            
-            if (cand === 0) this.isSolvable = false;
-            if (cand === 1) {
-                for (let i = 1; i <= 9; i++) if (this.candidates[x][y][i] === 1) return i;
-            } else return false;
-        }
-    }
-
-    // Only one candidate is possible in a cell
-    soleCandidates() {
-        for (let x = 0; x < 9; x++) {
-            for (let y = 0; y < 9; y++) {
-                const sol = this.solveCell(x, y);
-                if (sol !== false) { 
-                    this.cells[x][y] = sol;
-                    this.updateCandidates();
-                }
-            }
-        }
-    }
-
-    // A candidate only appears in one cell of a row, column or box
-    hiddenSingles() {
-        for (let x = 0; x < 9; x++) {
-            for (let y = 0; y < 9; y++) {
-                for (let i = 1; i <= 9; i++) {
-                    if (this.candidates[x][y][i] === 1 && this.cells[x][y] === undefined) {
-                        let found = false;
-                        let count;
-
-                        // Check Horizontal Rows
-                        if (!found) {
-                            count = 0;
-                            for (let j = 0; j < 9; j++) if (this.candidates[j][y][i] === 1 && this.cells[j][y] === undefined) count++;
-                            if (count === 1) found = true;
-                        }
-
-                        // Check Vertical Rows
-                        if (!found) {
-                            count = 0;
-                            for (let j = 0; j < 9; j++) if (this.candidates[x][j][i] === 1 && this.cells[x][j] === undefined) count++;
-                            if (count === 1) found = true;
-                        }
-
-                        // Check Boxes
-                        if (!found) {
-                            count = 0;
-                            for (let boxX = Math.floor(x / 3) * 3; boxX < Math.floor(x / 3) * 3 + 3; boxX++) {
-                                for (let boxY = Math.floor(y / 3) * 3; boxY < Math.floor(y / 3) * 3 + 3; boxY++) {
-                                    if (this.candidates[boxX][boxY][i] === 1 && this.cells[boxX][boxY] === undefined) count++;
-                                }
-                            }
-                            if (count === 1) found = true;
-                        }
-                        
-                        // Conclusion
-                        if (found) { 
-                            this.cells[x][y] = i;
-                            this.updateCandidates();
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // The 2 remaining cells
-    pointingPairs() {
-
-    }
-
     // Generate all possible candidates
     updateCandidates() {
         for (let x = 0; x < 9; x++) {
             for (let y = 0; y < 9; y++) {
-
-                // Reset candidates for this cell
                 this.candidates[x][y] = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1];
                 
                 for (let i = 1; i <= 9; i++) {
 
                     // Check Horizontal and Vertical Rows
-                    for (let j = 0; j < 9; j++) {
-                        if (this.cells[j][y] === i || this.cells[x][j] === i) this.candidates[x][y][i] = 0; 
-                    }
+                    let found = false;
+                    for (let j = 0; j < 9 && !found; j++) if (this.cells[j][y] === i || this.cells[x][j] === i) found = true;
 
                     // Check Boxes
-                    for (let boxX = Math.floor(x / 3) * 3; boxX < Math.floor(x / 3) * 3 + 3; boxX++) {
-                        for (let boxY = Math.floor(y / 3) * 3; boxY < Math.floor(y / 3) * 3 + 3; boxY++) {
-                            if (this.cells[boxX][boxY] === i) this.candidates[x][y][i] = 0;
-                        }
-                    }
+                    for (let dx = Math.floor(x / 3) * 3; dx < Math.floor(x / 3) * 3 + 3 && !found; dx++) 
+                        for (let dy = Math.floor(y / 3) * 3; dy < Math.floor(y / 3) * 3 + 3 && !found; dy++) 
+                            if (this.cells[dx][dy] === i) found = true;
+
+                    if (found) this.candidates[x][y][i] = 0; 
                 }
             }
         }
@@ -198,16 +118,15 @@ class Sudoku {
     }
 
     // Sets the value of the active cell in the frontend
-    setCell(cell, val = 'x') {
-        if (val === 'x') this.insertCandidates(cell);
-        else $(`#${cell}`).html(val);
+    setCell(val = 'x') {
+        if (val === 'x') this.insertCandidates(this.activeCell);
+        else $(`#${this.activeCell}`).html(val);
     }
 
     // Clears content of a cell and fills it with a hidden candidate grid
     insertCandidates(cell) {
         const appendTo = $(`#${cell}`).empty();
-        for (let j = 1; j <= 9; j++) 
-            appendTo.append(`<div class="cand hidden" id="${cell}-${j}">${j}</div>`);
+        for (let j = 1; j <= 9; j++) appendTo.append(`<div class="cand hidden" id="${cell}-${j}">${j}</div>`);
     }
 
     // Initialize and place a full sudoku with all of its nested elements
@@ -250,17 +169,16 @@ class Sudoku {
         $(document).keydown((e) => {
             const key = e.keyCode;
 
-            if (key === 49) self.setCell(self.activeCell, 1);
-            if (key === 50) self.setCell(self.activeCell, 2);
-            if (key === 51) self.setCell(self.activeCell, 3);
-            if (key === 52) self.setCell(self.activeCell, 4);
-            if (key === 53) self.setCell(self.activeCell, 5);
-            if (key === 54) self.setCell(self.activeCell, 6);
-            if (key === 55) self.setCell(self.activeCell, 7);
-            if (key === 56) self.setCell(self.activeCell, 8);
-            if (key === 57) self.setCell(self.activeCell, 9);
-
-            if (key === 8 || key == 46) self.setCell(self.activeCell, 'x');
+            if (key === 49) self.setCell(1);
+            if (key === 50) self.setCell(2);
+            if (key === 51) self.setCell(3);
+            if (key === 52) self.setCell(4);
+            if (key === 53) self.setCell(5);
+            if (key === 54) self.setCell(6);
+            if (key === 55) self.setCell(7);
+            if (key === 56) self.setCell(8);
+            if (key === 57) self.setCell(9);
+            if (key === 8 || key == 46) self.setCell();
             if (key >= 37 && key <= 40) self.moveActiveCell(key);
         });
     }
