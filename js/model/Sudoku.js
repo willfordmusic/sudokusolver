@@ -8,15 +8,15 @@ class Sudoku {
 
         //Debug, load cells
         this.cells = [
-            [undefined, undefined, 4, undefined, 7, undefined, undefined, undefined, 3],
-            [6, undefined, 9],
-            [undefined, 2, undefined, 1],
-            [undefined, undefined, undefined, undefined, 9, undefined, 2, 3, 8],
-            [8, 9, 6, 2, 3, 5, 1, 4, 7],
-            [undefined, undefined, undefined, undefined, undefined, undefined, 6, 9, 5],
-            [undefined, 5, undefined, 9, 6, 7, 3],
-            [undefined, undefined, undefined, 3, 5, 2, undefined, 7],
-            [3, 7, 2, 4, 1, 8, 9, 5, 6],
+            [4, 2, 7, 1, 9, 8, 3, 5, 6],
+            [1, 6, 5, 7, 2, 3, 9, 4, 8],
+            [9, 3, 8, 6, 4, 5, 1, 2, 7],
+            [undefined, undefined, undefined, 4, undefined, 2, undefined, 9, 5],
+            [8, undefined, 2, 5, undefined, 9, undefined, undefined, 3],
+            [5, 9, undefined, 3, undefined, 6, undefined, undefined, 2],
+            [undefined, 5, 9, 2, 6, 1, undefined, undefined, 4],
+            [2, undefined, undefined, 8, 3, undefined, 5, undefined, 9],
+            [undefined, 8, undefined, 9, 5, undefined, 2, undefined, 1],
         ];
 
         this.candidates = [];
@@ -28,26 +28,20 @@ class Sudoku {
 
     // Solve the sudoku
     solve() {
+        const startTime = performance.now();
         this.updateCells();
         for (let i = 0; i < 50 && !this.isSolved() && this.isSolvable; i++) {
             this.updateCandidates();
-            this.showCandidates();
 
             this.soleCandidates();
-            this.clear();
-
             this.hiddenSingles();
-            this.clear();
-            
-            console.log(i);
         }
 
-        
+        this.clear();
         if (!this.isSolved()) {
             this.showCandidates();
-            alert('Sudoku could not be solved! :(');
-        }
-
+            console.log('Sudoku could not be solved! :(');
+        } else console.log(`Sudoku solved in ${Math.floor(performance.now() - startTime)}ms`);
     }
 
     // Returns bool if the sudoku is solved
@@ -77,7 +71,10 @@ class Sudoku {
         for (let x = 0; x < 9; x++) {
             for (let y = 0; y < 9; y++) {
                 const sol = this.solveCell(x, y);
-                if (sol !== false) this.cells[x][y] = sol;
+                if (sol !== false) { 
+                    this.cells[x][y] = sol;
+                    this.updateCandidates();
+                }
             }
         }
     }
@@ -125,6 +122,11 @@ class Sudoku {
                 }
             }
         }
+    }
+
+    // The 2 remaining cells
+    pointingPairs() {
+
     }
 
     // Generate all possible candidates
