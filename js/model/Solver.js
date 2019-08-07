@@ -17,7 +17,7 @@ class Solver {
         const queue = new Queue();
         queue.enqueue(new Sudoku(this.sudoku.cells));
 
-        while (!queue.isEmpty() && queue.size() < 200000) {
+        while (!queue.isEmpty() && queue.size() < 50000) {
             const node = queue.dequeue();
             node.updateCandidates();
 
