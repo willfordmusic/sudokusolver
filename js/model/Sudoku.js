@@ -1,36 +1,38 @@
+// This class is responsible for the DOM manipulation regarding the sudoku and the basic functions needed to perform the button press events
 class Sudoku {
     constructor(cells) {
         this.activeCell = 'x';
 
+        // Candidates are stored in a 3D array, with the index = the number it's handling (which is why [0] is always 0)
         this.candidates = [];
         for (let i = 0; i < 9; i++) {
             this.candidates.push([]);
             for (let j = 0; j < 9; j++) this.candidates[i].push([0, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
         }
 
+        // Cells are stored in a 2D array, with the option of feeding the sudoku object a set of cells to start with
         if (cells === undefined) {
             this.cells = [];
             for (let i = 0; i < 9; i++) this.cells.push([0, 0, 0, 0, 0, 0, 0, 0, 0]);
         } else this.cells = JSON.parse(JSON.stringify(cells));
     }
 
-    // Solve the sudoku using a solver object
+    // Solve the sudoku using the solver object
     solve() {
         this.updateCells();
-        const solver = new Solver(this);
 
         const startTime = performance.now();
-        const solution = solver.solve();
+        const solution = new Solver(this).solve();
         if (solution === undefined) {
             this.showCandidates();
             $('#message').text(`Sudoku could not be solved after ${Math.floor((performance.now() - startTime) / 1000)} seconds :(`);
         } else {
-            this.clear(solution);
-            $('#message').text(`Sudoku solved in ${Math.floor(performance.now() - startTime)}ms! Nodes opened: ${solver.nodes}`);
+            this.build(solution);
+            $('#message').text(`Sudoku solved in ${Math.floor(performance.now() - startTime)}ms!`);
         }
     }
 
-    // Generate all possible candidates
+    // Generate the candidates for all open cells
     updateCandidates() {
         for (let x = 0; x < 9; x++) for (let y = 0; y < 9; y++) this.candidates[x][y] = this.getCandidates(x, y);
     }
@@ -52,7 +54,7 @@ class Sudoku {
     
                 if (found) cand[i] = 0; 
             }
-        } else {
+        } else { // For filled cells
             cand = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             cand[this.cells[x][y]] = 1;
         }
@@ -72,6 +74,8 @@ class Sudoku {
 
     // Show the saved candidates
     showCandidates() {
+        this.updateCells();
+        this.updateCandidates();
         for (let x = 0; x < 9; x++) {
             for (let y = 0; y < 9; y++) {
                 for (let i = 1; i <= 9; i++) {
@@ -113,8 +117,8 @@ class Sudoku {
         for (let j = 1; j <= 9; j++) appendTo.append(`<div class="cand hidden" id="${cell}-${j}">${j}</div>`);
     }
 
-    // Initialize and place a full sudoku with all of its nested elements
-    clear(board) {
+    // Place a full sudoku with all of its nested elements
+    build(board) {
         const container = $('#sudoku');
         container.empty();
         if (board !== undefined) this.cells = board;
@@ -134,29 +138,22 @@ class Sudoku {
         }
     }
 
+    // Clears the board
+    clear() {
+        this.cells = [];
+        for (let i = 0; i < 9; i++) this.cells.push([0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        this.build();
+    }
+
     // Initialize the Sudoku
     init() {
-        this.clear();
+        const self = this;
+        this.build();
 
         // Add event listeners
-        const self = this;
-
-        $('#btn-clear').click((e) => { 
-            e.preventDefault(); 
-            this.cells = [];
-            for (let i = 0; i < 9; i++) this.cells.push([0, 0, 0, 0, 0, 0, 0, 0, 0]);
-            self.clear();
-        });
-        $('#btn-candidate').click((e) => { 
-            e.preventDefault(); 
-            self.updateCells();
-            self.updateCandidates();
-            self.showCandidates();
-        });
-        $('#btn-solve').click((e) => { 
-            e.preventDefault();
-            self.solve();
-        });
+        $('#btn-clear').click((e) => { e.preventDefault(); self.clear(); });
+        $('#btn-candidate').click((e) => { e.preventDefault(); self.showCandidates(); });
+        $('#btn-solve').click((e) => { e.preventDefault(); self.solve(); });
 
         $(document).on('click', '.cell', (e) => self.setActiveCell(e.currentTarget.id));
         $(document).keydown((e) => {

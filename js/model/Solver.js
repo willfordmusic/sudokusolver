@@ -3,27 +3,29 @@ class Queue {
     enqueue(x)  { this.data.push(x); }
     dequeue() { return this.data.shift(); }
     isEmpty() { return this.data.length === 0; }
+    size() { return this.data.length; }
 }
 
+// This class houses all functions needed to solve a sudoku, from beginner to master level
 class Solver {
     constructor(sudoku) {
         this.sudoku = sudoku;
-        this.nodes = 0;
     }
 
+    // Solving the sudoku using breadth first search and a queue while loop
     solve() {
         const queue = new Queue();
         queue.enqueue(new Sudoku(this.sudoku.cells));
 
-        while (!queue.isEmpty() && this.nodes < 250000) {
+        while (!queue.isEmpty() && queue.size() < 200000) {
             const node = queue.dequeue();
+            node.updateCandidates();
+
             if (this.isSolved(node)) return node.cells;
             if (!this.isSolvable(node)) continue;
 
             const cell = this.getEmptyCell(node);
-            const cand = node.candidates[cell.x][cell.y];
-            cand.map((c, i) => { if (c === 1) {
-                this.nodes++;
+            node.candidates[cell.x][cell.y].map((c, i) => { if (c === 1) {
                 const child = new Sudoku(node.cells);
                 child.cells[cell.x][cell.y] = i;
                 queue.enqueue(child);
@@ -31,15 +33,14 @@ class Solver {
         }
     }
 
+    // Returns bool if the sudoku can even be solved
     isSolvable(node) {
-        node.updateCandidates();
         for (let x = 0; x < 9; x++)
             for (let y = 0; y < 9; y++)
                 if (node.candidates[x][y].filter(i => i === 1).length === 0) return false;
         return true;
     }
 
-    
     // Returns bool if the sudoku is solved
     isSolved(node) {
         for (let x = 0; x < 9; x++) 
