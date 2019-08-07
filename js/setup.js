@@ -11,5 +11,5 @@
     [0, 0, 0, 0, 0, 0, 8, 0, 0],
 ];*/
 
-const sudoku = new Sudoku(cells);
+const sudoku = new Sudoku();
 sudoku.init();
