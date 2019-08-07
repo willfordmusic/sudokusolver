@@ -16,47 +16,33 @@ class Sudoku {
 
     // Solve the sudoku using a solver object
     solve() {
-        const startTime = performance.now();
         this.updateCells();
-        const solution = new SolverBFS(this).solve();
+        const solver = new Solver(this);
 
+        const startTime = performance.now();
+        const solution = solver.solve();
         if (solution === undefined) {
             this.showCandidates();
-            $('#message').text('Sudoku could not be solved! :(');
+            $('#message').text(`Sudoku could not be solved after ${Math.floor((performance.now() - startTime) / 1000)} seconds :(`);
         } else {
-            this.cells = solution;
-            this.clear();
-            $('#message').text(`Sudoku solved in ${Math.floor(performance.now() - startTime)}ms`);
+            this.clear(solution);
+            $('#message').text(`Sudoku solved in ${Math.floor(performance.now() - startTime)}ms! Nodes opened: ${solver.nodes}`);
         }
-    }
-
-    // Returns bool if the sudoku is solved
-    isSolved() {
-        for (let x = 0; x < 9; x++) 
-            for (let y = 0; y < 9; y++)
-                if (this.cells[x][y] === 0) return false;
-        return true;
     }
 
     // Generate all possible candidates
     updateCandidates() {
-        for (let x = 0; x < 9; x++) {
-            for (let y = 0; y < 9; y++) {
-                this.candidates[x][y] = this.getCandidates(x, y);
-            }
-        }
+        for (let x = 0; x < 9; x++) for (let y = 0; y < 9; y++) this.candidates[x][y] = this.getCandidates(x, y);
     }
 
     // Generates candidates for a cell on coordinate (x, y)
     getCandidates(x, y) {
-        let cand;
+        let cand = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1];
         if (this.cells[x][y] === 0) {
-            cand = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-                
             for (let i = 1; i <= 9; i++) {
-    
-                // Check Horizontal and Vertical Rows
                 let found = false;
+
+                // Check Horizontal and Vertical Rows
                 for (let j = 0; j < 9 && !found; j++) if (this.cells[j][y] === i || this.cells[x][j] === i) found = true;
     
                 // Check Boxes
@@ -78,14 +64,11 @@ class Sudoku {
     updateCells() {
         for (let x = 0; x < 9; x++) {
             for (let y = 0; y < 9; y++) {
-                if ($(`#${x}${y}`).text().length === 1) 
-                    this.cells[x][y] = parseInt($(`#${x}${y}`).text());
+                if ($(`#${x}${y}`).text().length === 1) this.cells[x][y] = parseInt($(`#${x}${y}`).text());
                 else this.cells[x][y] = 0;
             }
         }
     }
-
-    // FRONTEND FUNCTIONS
 
     // Show the saved candidates
     showCandidates() {
@@ -100,7 +83,7 @@ class Sudoku {
     }
 
     // Sets the active cell
-    setActiveCell(cell = 'x') {
+    setActiveCell(cell) {
         $('.cell').removeClass('active');
         $(`#${cell}`).addClass('active');
         this.activeCell = cell;
@@ -131,9 +114,10 @@ class Sudoku {
     }
 
     // Initialize and place a full sudoku with all of its nested elements
-    clear() {
+    clear(board) {
         const container = $('#sudoku');
         container.empty();
+        if (board !== undefined) this.cells = board;
 
         for (let i = 0; i < 9; i++) {
             const box = $('<div class="box"></div>');

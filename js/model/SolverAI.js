@@ -1,3 +1,5 @@
+// lol this don't work
+
 class SolverAI {
     constructor(sudoku) {
         this.sudoku = sudoku;
