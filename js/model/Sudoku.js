@@ -19,8 +19,6 @@ class Sudoku {
 
     // Solve the sudoku using the solver object
     solve() {
-        this.updateCells();
-
         const startTime = performance.now();
         const solution = new Solver(this).solve();
         if (solution === undefined) {
@@ -62,19 +60,8 @@ class Sudoku {
         return cand;
     }
 
-    // Updates the cells member variable with what is seen in the UI
-    updateCells() {
-        for (let x = 0; x < 9; x++) {
-            for (let y = 0; y < 9; y++) {
-                if ($(`#${x}${y}`).text().length === 1) this.cells[x][y] = parseInt($(`#${x}${y}`).text());
-                else this.cells[x][y] = 0;
-            }
-        }
-    }
-
     // Show the saved candidates
     showCandidates() {
-        this.updateCells();
         this.updateCandidates();
         for (let x = 0; x < 9; x++) {
             for (let y = 0; y < 9; y++) {
@@ -107,8 +94,14 @@ class Sudoku {
 
     // Sets the value of the active cell in the frontend
     setCell(val = 'x') {
-        if (val === 'x') this.insertCandidates(this.activeCell);
-        else $(`#${this.activeCell}`).html(val);
+        if (val === 'x') {
+            this.insertCandidates(this.activeCell);
+            this.cells[this.activeCell[0]][this.activeCell[1]] = 0;
+        }
+        else {
+            $(`#${this.activeCell}`).html(val);
+            this.cells[this.activeCell[0]][this.activeCell[1]] = parseInt(val);
+        }
     }
 
     // Clears content of a cell and fills it with a hidden candidate grid
@@ -138,6 +131,10 @@ class Sudoku {
         }
     }
 
+    placeNumbers() {
+        for (let i = 1; i <= 9; i++) $('#mobile-numbers').append(`<div class="cell line">${i}</div>`);
+    }
+
     // Clears the board
     clear() {
         this.cells = [];
@@ -149,25 +146,18 @@ class Sudoku {
     init() {
         const self = this;
         this.build();
+        this.placeNumbers();
 
         // Add event listeners
         $('#btn-clear').click((e) => { e.preventDefault(); self.clear(); });
         $('#btn-candidate').click((e) => { e.preventDefault(); self.showCandidates(); });
         $('#btn-solve').click((e) => { e.preventDefault(); self.solve(); });
 
-        $(document).on('click', '.cell', (e) => self.setActiveCell(e.currentTarget.id));
+        $(document).on('click', '.cell.grid', (e) => self.setActiveCell(e.currentTarget.id));
+        $(document).on('click', '.cell.line', (e) => self.setCell(parseInt($(e.currentTarget).html())));
         $(document).keydown((e) => {
             const key = e.keyCode;
-
-            if (key === 49) self.setCell(1);
-            if (key === 50) self.setCell(2);
-            if (key === 51) self.setCell(3);
-            if (key === 52) self.setCell(4);
-            if (key === 53) self.setCell(5);
-            if (key === 54) self.setCell(6);
-            if (key === 55) self.setCell(7);
-            if (key === 56) self.setCell(8);
-            if (key === 57) self.setCell(9);
+            if (key >= 49 && key <= 57) self.setCell(key - 48);
             if (key === 8 || key === 46 || key === 32) self.setCell();
             if (key >= 37 && key <= 40) self.moveActiveCell(key);
         });
